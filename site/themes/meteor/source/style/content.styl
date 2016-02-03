@@ -6,6 +6,7 @@ code-font()
 #content
   max-width 760px
   margin 0px auto
+  -webkit-text-size-adjust: 100%;
 
   em
     font-style italic
@@ -58,11 +59,19 @@ code-font()
   a
     color #de4f4f
 
+  img
+    max-width 100%
+
   code
     code-font()
     padding 1px 4px
     background-color #eee
     margin 0 2px
+
+  blockquote
+    padding-left 1.3em
+    border-left #eee solid 0.2em
+    font-style italic
 
   .highlight
     code-font()

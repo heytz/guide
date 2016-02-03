@@ -1,5 +1,7 @@
 ---
 title: Build system
+order: 12
+description: How to use Meteor's build system to compile your app, and use packages from Atmosphere and NPM.
 ---
 
 The Meteor build system is the actual command line tool that you get when you install Meteor. You run it by typing the `meteor` command in your terminal, possibly followed by a set of arguments. Read the [docs about the command line tool](http://docs.meteor.com/#/full/commandline) or type `meteor help` in your terminal to learn about all of the commands.
@@ -18,19 +20,15 @@ The main function of the Meteor build tool is to run "build plugins" - these plu
 
 <h3 id="concatenate-and-minify">Combines and minifies code</h3>
 
-Another important feature of the Meteor build tool is that it automatically concatenates and minifies all of your files in production mode. This is enabled by the `standard-minifiers` package, which is in all Meteor apps by default. If you need different minification behavior, you can replace this package. Below, we'll talk about how to switch out your minifier to add PostCSS to your build process.
+Another important feature of the Meteor build tool is that it automatically concatenates and minifies all of your files in production mode. This is enabled by the `standard-minifiers` package, which is in all Meteor apps by default. If you need different minification behavior, you can replace this package. Below, we'll talk about how to [switch out your minifier to add PostCSS to your build process](#postcss).
 
 <h3 id="dev-vs-prod">Development vs. production</h3>
 
-Running an app in development is all about fast iteration time. All kinds of different parts of your app are handled differently and instrumented to enable better reloads and debugging. In production, the app is reduced to just the necessary code, and functions like a regular Node.js app. Therefore, you shouldn't run your app in production by running the `meteor` command. Instead, run `meteor build` and then deploy the resulting app bundle. Read more in the [production deployment article](XXX).
+Running an app in development is all about fast iteration time. All kinds of different parts of your app are handled differently and instrumented to enable better reloads and debugging. In production, the app is reduced to just the necessary code, and functions like a regular Node.js app. Therefore, you shouldn't run your app in production by running the `meteor` command. Instead, follow the directions in the [production deployment article](deployment.html#custom-deployment).
 
 <h2 id="using-packages">Using community packages</h2>
 
 Building an application completely from scratch is a tall order. This is one of the main reasons you might consider using Meteor in the first place - you can focus on writing the code that is specific to your app, instead of reinventing wheels like user login and data synchronization. To streamline your workflow even further, it makes sense to use community packages from Atmosphere and NPM. Many of these packages are recommended in the guide, and you can find more in the online directories.
-
-<h4 id="bower">A note about Bower<h4>
-
-Don't use Bower XXX link to some article explaining that people are moving to NPM for client-side JS and original maintainer left? Uri will find an article and help write justification here
 
 <h3 id="atmosphere">Atmosphere</h3>
 
@@ -45,7 +43,7 @@ You have two options for adding packages from Atmosphere to your app:
 
 These options will add the newest version of the desired package that is compatible with the other packages in your app. If you want to specify a particular version, you can specify it by adding a suffix to the package name, like so: `meteor add kadira:flow-router@2.10.0`.
 
-Regardless of how you add the package to your app, its actual version will be tracked in the file at `.meteor/versions`. This means that anybody collaborating with you on the same app is guaranteed to have the same package versions as you. If you want to update to a newer version of a package after installing it, use `meteor update kadira:flow-router`. Alternatively, you can run `meteor update` without any arguments to update all packages and the version of Meteor to their latest versions.
+Regardless of how you add the package to your app, its actual version will be tracked in the file at `.meteor/versions`. This means that anybody collaborating with you on the same app is guaranteed to have the same package versions as you. If you want to update to a newer version of a package after installing it, use `meteor update`. You can run `meteor update` without any arguments to update all packages and Meteor itself to their latest versions, or pass a specific package to update just that one, for example `meteor update kadira:flow-router`.
 
 If your app is running when you add a new package, Meteor will automatically download it and restart your app for you.
 
@@ -65,17 +63,15 @@ You may notice that, with the exception of Meteor platform packages, all package
 
 <h4 id="atmosphere-overriding">Overriding packages from Atmosphere with a local version</h4>
 
-A Meteor app can load packages in one of three ways:
+A Meteor app can load packages in one of three ways, and it looks for a matching package name in the following order:
 
-1. Downloading a pre-built package from Atmosphere. The package is cached in `~/.meteor/packages` on Mac/Linux or `%LOCALAPPDATA%\.meteor\packages` on Windows, and only loaded into your app as it is built.
-2. Loading the package's source code into a `packages/` directory inside your app. This lets you modify the source code of the package for your particular needs.
-3. Defining a `PACKAGE_DIRS` environment variable before running any `meteor` command. You can add multiple directories by separating the paths with a `:` on OSX or Linux, or a `;` on Windows. For example: `PACKAGE_DIRS=../first/directory:../second/directory`, or on Windows: `set PACKAGE_DIRS=..\first\directory;..\second\directory`.
+1. Package source code in the `packages/` directory inside your app.
+2. Package source code in directories indicated by setting a `PACKAGE_DIRS` environment variable before running any `meteor` command. You can add multiple directories by separating the paths with a `:` on OSX or Linux, or a `;` on Windows. For example: `PACKAGE_DIRS=../first/directory:../second/directory`, or on Windows: `set PACKAGE_DIRS=..\first\directory;..\second\directory`.
+3. Pre-built package from Atmosphere. The package is cached in `~/.meteor/packages` on Mac/Linux or `%LOCALAPPDATA%\.meteor\packages` on Windows, and only loaded into your app as it is built.
 
-When `meteor` searches for a package listed in the `~/.meteor/packages` file, it will look inside of the app's `packages/` directory first. Second, it will search inside of any directories defined in `PACKAGE_DIRS` environment variable. Lastly, it will search for the package on Atmosphere.
+If you need to patch a package to do something that the published version doesn't do, then you can use (1) or (2) to override the version from Atmosphere. You can even do this to load patched versions of Meteor core packages - just copy the code of the package from [Meteor's GitHub repository](https://github.com/meteor/meteor/tree/devel/packages), and edit away.
 
-If you need to patch a package to do something that the published version doesn't do, then (2) or (3) is the option for you. You can even do this to load patched versions of Meteor core packages - just copy the code of the package from [Meteor's GitHub repository](https://github.com/meteor/meteor/tree/devel/packages), and edit away.
-
-One difference between pre-published packages and local app packages is that the published packages have any binary dependencies pre-built. This should only affect a small subset of packages. If you clone the source code into your app, you need to make sure you have any compilers required by that package pre-installed.
+One difference between pre-published packages and local app packages is that the published packages have any binary dependencies pre-built. This should only affect a small subset of packages. If you clone the source code into your app, you need to make sure you have any compilers required by that package.
 
 <h3 id="npm">NPM</h3>
 
@@ -83,23 +79,109 @@ One difference between pre-published packages and local app packages is that the
 
 <h4 id="npm-adding">Adding packages to your app</h4>
 
-As of Meteor 1.3, NPM packages work seamlessly with Meteor.
-
-XXX to be filled in by talking with Ben
+Meteor 1.3 will have seamless integration with NPM, and you will be able to simply `npm install` these packages into your app directory. Until then, the easiest way to use NPM packages in your app is [`meteorhacks:npm`](https://atmospherejs.com/meteorhacks/npm).
 
 <h4 id="npm-searching">Searching for packages</h4>
 
 The best way to find NPM packages is by searching on [npmjs.com](https://www.npmjs.com/). There are also some websites that have special search features specifically for certain kinds of packages, like the aptly named [react-components.com](http://react-components.com/).
 
-<h4 id="npm-callbacks">Handling callbacks in Meteor</h4>
+<h3 id="npm-callbacks">Handling NPM callbacks</h3>
 
-XXX link to package building article? Or move that content here. Perhaps it should be here since building packages will be a power user only thing in 1.3?
+Many NPM packages rely on an asynchronous, callback or promise-based coding style. For several reasons, Meteor is currently built around a synchronous-looking but still non-blocking style using [Fibers](https://github.com/laverdet/node-fibers).
+
+The global Meteor server context and every method and publication initialize a new fiber so that they can run concurrently. Many Meteor APIs, for example collections, rely on running inside a fiber. They also rely on an internal Meteor mechanism that tracks server "environment" state, like the currently executing method. This means you need to initialize your own fiber and environment to use asynchronous Node code inside a Meteor app. Let's look at an example of some code that won't work, using the code example from the [node-github repository](https://github.com/mikedeboer/node-github):
+
+```js
+// Inside a Meteor method definition
+updateGitHubFollowers() {
+  github.user.getFollowingFromUser({
+    user: 'stubailo'
+  }, (err, res) => {
+    // Using a collection here will throw an error
+    // because the asynchronous code is not in a fiber
+    Followers.insert(res);
+  });
+}
+```
+
+Let's look at a few ways to resolve this issue.
+
+<h4 id="meteor-bindenvironment">Option 1: Meteor.bindEnvironment</h4>
+
+In most cases, simply wrapping the callback in `Meteor.bindEnvironment` will do the trick. This function both wraps the callback in a fiber, and does some work to maintain Meteor's server-side environment tracking. Here's the same code with `Meteor.bindEnvironment`:
+
+```js
+// Inside a Meteor method definition
+updateGitHubFollowers() {
+  github.user.getFollowingFromUser({
+    user: 'stubailo'
+  }, Meteor.bindEnvironment((err, res) => {
+    // Everything is good now
+    Followers.insert(res);
+  }));
+}
+```
+
+However, this won't work in all cases - since the code runs asynchronously, we can't use anything we got from an API in the method return value. We need a different approach that will convert the async API to a synchronous-looking one that will allow us to return a value.
+
+<h4 id="meteor-wrapasync">Option 2: Meteor.wrapAsync</h4>
+
+Many NPM packages adopt the convention of taking a callback that accepts `(err, res)` arguments. If your asynchronous function fits this description, like the one above, you can use `Meteor.wrapAsync` to convert to a fiberized API that uses return values and exceptions instead of callbacks, like so:
+
+```js
+// Setup sync API
+const getFollowingFromUser =
+  Meteor.wrapAsync(github.user.getFollowingFromUser, github.user);
+
+// Inside a Meteor method definition
+updateGitHubFollowers() {
+  const result = getFollowingFromUser({
+    user: 'stubailo'
+  });
+
+  Followers.insert(result);
+
+  // Return how many followers we have
+  return result.length;
+}
+```
+
+If you wanted to refactor this and create a completely fiber-wrapper GitHub client, you could write some logic to loop over all of the methods available and call `Meteor.wrapAsync` on them, creating a new object with the same shape but with a more Meteor-compatible API.
+
+<h4 id="async-promises">Option 3: Promises</h4>
+
+Recently, a lot of NPM packages have been moving to Promises instead of callbacks for their API. This means you actually get a return value from the asynchronous function, but it's just an empty shell where the real value is filled in later. If you are using a package that has a promise-based API, you can convert it to synchronous-looking code very easily.
+
+First, add the Meteor promise package:
+
+```sh
+meteor add promise
+```
+
+Now, you can use `Promise.await` to get a return value from a promise-returning function. For example, here is how you could send a text message using the Node Twilio API:
+
+```js
+sendTextMessage() {
+  const promise = client.sendMessage({
+    to:'+16515556677',
+    from: '+14506667788',
+    body: 'Hello world!'
+  });
+
+  // Wait for and return the result
+  return Promise.await(promise);
+}
+```
+
+<h3 id="client-npm">NPM on the client</h3>
+
+NPM started as a package manager for Node.js, but is quickly becoming one of the most popular places to publish client-side modules as well. Meteor 1.3 will include built-in support for bundling NPM modules on the client, but in the meantime the best option is to use the [`cosmos:browserify`](https://atmospherejs.com/cosmos/browserify) package to bundle these modules. Since one of the most common scenarios is using React components from NPM, read about how to do this in the [React in Meteor guide](http://react-in-meteor.readthedocs.org/en/latest/client-npm/).
 
 <h2 id="javascript-transpilation">JavaScript transpilation</h2>
 
 These days, the landscape of JavaScript tools and frameworks is constantly shifting, and the language itself is evolving just as rapidly. It's no longer reasonable to wait for web browsers to implement the language features you want to use. Most JavaScript development workflows rely on compiling code to work on the lowest common denominator of environments, while letting you use the newest features in development. Meteor has support for some of the most popular tools out of the box.
 
-<h3 id="es2015">ES2015+</h3>
+<h3 id="es2015">ES2015+ (recommended)</h3>
 
 ECMAScript, the language standard on which every browser's JavaScript implementation is based, has moved to yearly standards releases. The newest complete standard is ES2015, which includes some long-awaited and very significant improvements to the JavaScript language. Meteor's `ecmascript` package compiles this standard down to regular JavaScript that all browsers can understand using the [popular Babel compiler](https://babeljs.io/). It's fully backwards compatible to "regular" JavaScript, so you don't have to use any new features if you don't want to. Additionally, as browser support for these features improves, we'll be able to scale back the amount of compilation necessary.
 
@@ -125,21 +207,19 @@ meteor add coffeescript
 
 All code written in CoffeeScript compiles to JavaScript under the hood, and is completely compatible with any code in other packages that is written in JS or ES2015.
 
-<h3 id="typescript">TypeScript</h3>
-
-XXX get Uri to write this section
-
 <h2 id="blaze-templates">Templates and HTML</h2>
 
 Since Meteor uses client-side rendering for your app's UI, all of your HTML code, UI components, and templates need to be compiled to JavaScript. There are a few options at your disposal to write your UI code.
 
 <h3 id="blaze-spacebars">Blaze HTML templates</h3>
 
-The aptly named `blaze-html-templates` package that comes with every new Meteor app by default compiles your `.html` files written using [Spacebars](XXX blaze article) into Blaze-compatible JavaScript code. You can also add `blaze-html-templates` to any of your packages to compile template files located in the package.
+The aptly named `blaze-html-templates` package that comes with every new Meteor app by default compiles your `.html` files written using [Spacebars](blaze.html#spacebars) into Blaze-compatible JavaScript code. You can also add `blaze-html-templates` to any of your packages to compile template files located in the package.
+
+[Read about how to use Blaze and Spacebars in the Blaze article.](blaze.html)
 
 <h3 id="blaze-jade">Blaze Jade templates</h3>
 
-If you don't like the Spacebars syntax Meteor uses by default and want something more concise, you can give Jade a try by using [`mquandalle:jade`](https://atmospherejs.com/mquandalle/jade). This package will compile all files in your app with the `.jade` extension into Blaze-compatible code, and can be used side-by-side with `blaze-html-templates` if you want to have some of your code in Spacebars and some in Jade.
+If you don't like the Spacebars syntax Meteor uses by default and want something more concise, you can give Jade a try by using [`dalgard:jade`](https://atmospherejs.com/dalgard/jade). This package will compile all files in your app with the `.jade` extension into Blaze-compatible code, and can be used side-by-side with `blaze-html-templates` if you want to have some of your code in Spacebars and some in Jade.
 
 <h3 id="react-jsx">JSX for React</h3>
 
@@ -151,7 +231,7 @@ If you want to use React but don't want to deal with JSX and prefer a more HTML-
 
 <h3 id="angular-templates">Angular templates</h3>
 
-XXX Uri will write this
+If you would like to write your UI in Angular, you will need to switch out Meteor's Blaze template compiler which comes by default with the Angular one. Read about how to do this in the [Angular-Meteor tutorial](https://www.meteor.com/tutorials/angular/templates).
 
 <h2 id="css">CSS pre-processors</h2>
 
@@ -173,10 +253,10 @@ CSS framework compatibility should be a primary concern when picking a pre-proce
 
 An important feature shared by all of the available CSS pre-processors is the ability to import files. This lets you split your CSS into smaller pieces, and provides a lot of the same benefits that you get from JavaScript modules:
 
-1. You can control the load order of files by encoding dependencies through imports, since the load order of CSS matters
-2. You can create reusable CSS "modules" that just have variables and mixins, and don't actually generate any CSS
+1. You can control the load order of files by encoding dependencies through imports, since the load order of CSS matters.
+2. You can create reusable CSS "modules" that just have variables and mixins, and don't actually generate any CSS.
 
-In Meteor, each of your `.scss`, `.less`, or `.styl` source files will be one of two types: "main", or "import".
+In Meteor, each of your `.scss`, `.less`, or `.styl` source files will be one of two types: "source", or "import".
 
 A "source" file is evaluated eagerly, and adds its compiled form to the CSS of the app immediately.
 
